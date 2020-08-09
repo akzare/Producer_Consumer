@@ -25,8 +25,11 @@ The system design architecture includes these subsystems:
 
 In order to manually build the system, you should first setup the cross-compiler on you host machine. Provided that the target embedded board has GCC compiler on its Linux distribution, as an alternative you might use the target embedded platform to build the code. Building of the program manually is easy. First copy the C source code into board and then from the directory containing the sources, 
 simply invoke make:
+
   % make
+
   % make prod
+  
   % make cons
 
 This builds the isc program and the isc module shared libraries.
