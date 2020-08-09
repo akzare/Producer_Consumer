@@ -15,9 +15,6 @@
 #            embedded boards, please consult the following links:
 # https://endjin.com/blog/2019/09/passwordless-ssh-from-windows-10-to-raspberry-pi
 # https://stackoverflow.com/questions/21659637/how-to-fix-sudo-no-tty-present-and-no-askpass-program-specified-error
-# To check whether ssh works on your setup, you might first test it manually: 
-# ssh -i C:\Users\f41626c\.ssh\id_rsa  odroid@100.65.49.235
-# ssh -i C:\Users\f41626c\.ssh\id_rsa  nvidia@100.65.49.152
 
 
 from __future__ import print_function,unicode_literals
@@ -48,7 +45,6 @@ def remote_set_time(board_ip_addr, board_root_usr, board_type):
 
   print(time_string) 
   # Remotely set time on an embedded board to the current time on the host desktop machine
-
   ret = subprocess.call([cfg.SSH, '-i', cfg.PRIVATE_KEY_LOCATION,
                          '{}@{}'.format(board_root_usr, board_ip_addr),
                          'sudo date --set \"{}\"'.format(time_string)]);
@@ -222,115 +218,119 @@ def remote_copy_log_file(board_ip_addr, board_root_usr, subsys_root_dir_name, su
 # M A I N   P R O C E D U R E
 ########################################################################
 if __name__ == '__main__':
+  # ##############################################################
   # Set current time into embedded boards #1 & #2
   # The following commands are only necessary if the time on the target embedded
   # board is not globally sync.
 #  remote_set_time(cfg.BOARD1_IP_ADDR, cfg.BOARD1_USER_NAME, cfg.BOARD1_NAME)
 #  remote_set_time(cfg.BOARD2_IP_ADDR, cfg.BOARD2_USER_NAME, cfg.BOARD2_NAME)
 
-
+  # ##############################################################
   # Creating the source code directory on embedded boards #1 & #2
   remote_create_src_dir(cfg.BOARD1_IP_ADDR, cfg.BOARD1_USER_NAME, cfg.BOARD1_SRC_ROOT_DIR, cfg.BOARD1_NAME)
   remote_create_src_dir(cfg.BOARD2_IP_ADDR, cfg.BOARD2_USER_NAME, cfg.BOARD2_SRC_ROOT_DIR, cfg.BOARD2_NAME)
-
     
+  # ##############################################################
   # Copying C source code into embedded boards #1 & #2
   remote_copy_src_dir(cfg.BOARD1_IP_ADDR, cfg.BOARD1_USER_NAME, cfg.HOST_SRC_ROOT_DIR, cfg.BOARD1_SRC_ROOT_DIR, cfg.BOARD1_NAME)
   remote_copy_src_dir(cfg.BOARD2_IP_ADDR, cfg.BOARD2_USER_NAME, cfg.HOST_SRC_ROOT_DIR, cfg.BOARD2_SRC_ROOT_DIR, cfg.BOARD2_NAME)
 
-
+  # ##############################################################
   # Cleaning C source code on embedded boards #1 & #2
   remote_build_subsys(cfg.BOARD1_IP_ADDR, cfg.BOARD1_USER_NAME, cfg.BOARD1_SRC_ROOT_DIR, cfg.BOARD_SRC_C_DIR, 'all', cfg.NO, cfg.BOARD1_NAME)
   remote_build_subsys(cfg.BOARD2_IP_ADDR, cfg.BOARD2_USER_NAME, cfg.BOARD2_SRC_ROOT_DIR, cfg.BOARD_SRC_C_DIR, 'all', cfg.NO, cfg.BOARD2_NAME)
 
-
+  # ##############################################################
   # Building C source code on embedded boards #1 & #2
   remote_build_subsys(cfg.BOARD1_IP_ADDR, cfg.BOARD1_USER_NAME, cfg.BOARD1_SRC_ROOT_DIR, cfg.BOARD_SRC_C_DIR, 'all', cfg.YES, cfg.BOARD1_NAME)
   remote_build_subsys(cfg.BOARD2_IP_ADDR, cfg.BOARD2_USER_NAME, cfg.BOARD2_SRC_ROOT_DIR, cfg.BOARD_SRC_C_DIR, 'all', cfg.YES, cfg.BOARD2_NAME)
 
-
+  # ##############################################################
   # Cleaning producer subsystem on embedded board #1
   remote_build_subsys(cfg.BOARD1_IP_ADDR, cfg.BOARD1_USER_NAME, cfg.BOARD1_SRC_ROOT_DIR, cfg.BOARD_SRC_C_DIR, cfg.PROD, cfg.NO, cfg.BOARD1_NAME)
   # Building producer subsystem on embedded board #1
   remote_build_subsys(cfg.BOARD1_IP_ADDR, cfg.BOARD1_USER_NAME, cfg.BOARD1_SRC_ROOT_DIR, cfg.BOARD_SRC_C_DIR, cfg.PROD, cfg.YES, cfg.BOARD1_NAME)
 
-
+  # ##############################################################
   # Cleaning consumer subsystem on embedded board #2
   remote_build_subsys(cfg.BOARD2_IP_ADDR, cfg.BOARD2_USER_NAME, cfg.BOARD2_SRC_ROOT_DIR, cfg.BOARD_SRC_C_DIR, cfg.CONS, cfg.NO, cfg.BOARD2_NAME)
   # Building consumer subsystem on embedded board #2
   remote_build_subsys(cfg.BOARD2_IP_ADDR, cfg.BOARD2_USER_NAME, cfg.BOARD2_SRC_ROOT_DIR, cfg.BOARD_SRC_C_DIR, cfg.CONS, cfg.YES, cfg.BOARD2_NAME)
 
-
+  # ##############################################################
   # Running consumer subsystem on embedded board #2
   remote_run_subsys(cfg.BOARD2_IP_ADDR, cfg.BOARD2_USER_NAME, cfg.BOARD2_SRC_ROOT_DIR, cfg.BOARD_SRC_C_DIR, cfg.CONS_APP, cfg.BOARD2_NAME)
   # GetPID for the consumer subsystem
   consumer_kill_cmd = remote_getpid_subsys(cfg.BOARD2_IP_ADDR, cfg.BOARD2_USER_NAME, cfg.CONS_APP, cfg.BOARD2_NAME)
 
-
+  # ##############################################################
   # Running isc server subsystem on embedded board #2
   remote_run_subsys(cfg.BOARD2_IP_ADDR, cfg.BOARD2_USER_NAME, cfg.BOARD2_SRC_ROOT_DIR, cfg.BOARD_SRC_C_DIR, cfg.ISC_APP_SERVER, cfg.BOARD2_NAME)
   # GetPID for the isc server subsystem
   isc_server_kill_cmd = remote_getpid_subsys(cfg.BOARD2_IP_ADDR, cfg.BOARD2_USER_NAME, cfg.ISC_APP_SERVER, cfg.BOARD2_NAME)
 
-
+  # ##############################################################
   # Running isc client subsystem on embedded board #1
   remote_run_subsys(cfg.BOARD1_IP_ADDR, cfg.BOARD1_USER_NAME, cfg.BOARD1_SRC_ROOT_DIR, cfg.BOARD_SRC_C_DIR, cfg.ISC_APP_CLIENT, cfg.BOARD1_NAME)
   # GetPID for the isc client subsystem
   isc_client_kill_cmd = remote_getpid_subsys(cfg.BOARD1_IP_ADDR, cfg.BOARD1_USER_NAME, cfg.ISC_APP_CLIENT, cfg.BOARD1_NAME)
 
-
+  # ##############################################################
   # Running producer subsystem on embedded board #1
   remote_run_subsys(cfg.BOARD1_IP_ADDR, cfg.BOARD1_USER_NAME, cfg.BOARD1_SRC_ROOT_DIR, cfg.BOARD_SRC_C_DIR, cfg.PROD_APP, cfg.BOARD1_NAME)
 
-  # Sleep for 3 seconds
+  # ##############################################################
+  # Sleep for 3 seconds until current run finishes
   time.sleep(3) 
 
+  # ##############################################################
   # Stopping isc client subsystem on embedded board #1
   remote_stop_subsys(cfg.BOARD1_IP_ADDR, cfg.BOARD1_USER_NAME, isc_client_kill_cmd, cfg.BOARD1_NAME)
 
-  # Sleep for 3 seconds
+  # ##############################################################
+  # Sleep for 3 seconds until client side shuts down 
   time.sleep(3) 
-
-    
+   
+  # ##############################################################
   # Stopping consumer subsystem on embedded board #2
   remote_stop_subsys(cfg.BOARD2_IP_ADDR, cfg.BOARD2_USER_NAME, consumer_kill_cmd, cfg.BOARD2_NAME)
 
-
+  # ##############################################################
   # Stopping isc server subsystem on embedded board #2
   remote_stop_subsys(cfg.BOARD2_IP_ADDR, cfg.BOARD2_USER_NAME, isc_server_kill_cmd, cfg.BOARD2_NAME)
-  
-  
-  # Sleep for 3 seconds
+    
+  # ##############################################################
+  # Sleep for 3 seconds until the whole system shuts down
   time.sleep(3) 
 
+  # ##############################################################
   # Copying the ISC server log file from embedded board #2 into host
   remote_copy_log_file(cfg.BOARD2_IP_ADDR, cfg.BOARD2_USER_NAME, cfg.BOARD2_SRC_ROOT_DIR, cfg.BOARD_SRC_C_DIR, cfg.ISC_PRCS_LOG_FILENAME, cfg.HOST_SERVER_LOG_DIR, cfg.BOARD2_NAME)
 
-
+  # ##############################################################
   # Copying the consumer log file from embedded board #2 into host
   remote_copy_log_file(cfg.BOARD2_IP_ADDR, cfg.BOARD2_USER_NAME, cfg.BOARD2_SRC_ROOT_DIR, cfg.BOARD_SRC_C_DIR, cfg.CONS_PRCS_LOG_FILENAME, cfg.HOST_SERVER_LOG_DIR, cfg.BOARD2_NAME)
 
-
+  # ##############################################################
   # Copying the Socket server thread log file from embedded board #2 into host
   remote_copy_log_file(cfg.BOARD2_IP_ADDR, cfg.BOARD2_USER_NAME, cfg.BOARD2_SRC_ROOT_DIR, cfg.BOARD_SRC_C_DIR, cfg.SCKT_SERVER_THRD_LOG_FILENAME, cfg.HOST_SERVER_LOG_DIR, cfg.BOARD2_NAME)
 
-
+  # ##############################################################
   # Copying the Shared Memory Receive thread log file from embedded board #2 into host
   remote_copy_log_file(cfg.BOARD2_IP_ADDR, cfg.BOARD2_USER_NAME, cfg.BOARD2_SRC_ROOT_DIR, cfg.BOARD_SRC_C_DIR, cfg.SHMEM_REC_THRD_LOG_FILENAME, cfg.HOST_SERVER_LOG_DIR, cfg.BOARD2_NAME)
 
-
-
+  # ##############################################################
   # Copying the ISC client log file from embedded board #1 into host
   remote_copy_log_file(cfg.BOARD1_IP_ADDR, cfg.BOARD1_USER_NAME, cfg.BOARD1_SRC_ROOT_DIR, cfg.BOARD_SRC_C_DIR, cfg.ISC_PRCS_LOG_FILENAME, cfg.HOST_CLIENT_LOG_DIR, cfg.BOARD1_NAME)
 
-
+  # ##############################################################
   # Copying the producer log file from embedded board #1 into host
   remote_copy_log_file(cfg.BOARD1_IP_ADDR, cfg.BOARD1_USER_NAME, cfg.BOARD1_SRC_ROOT_DIR, cfg.BOARD_SRC_C_DIR, cfg.PROD_PRCS_LOG_FILENAME, cfg.HOST_CLIENT_LOG_DIR, cfg.BOARD1_NAME)
 
-
+  # ##############################################################
   # Copying the Socket client thread log file from embedded board #1 into host
   remote_copy_log_file(cfg.BOARD1_IP_ADDR, cfg.BOARD1_USER_NAME, cfg.BOARD1_SRC_ROOT_DIR, cfg.BOARD_SRC_C_DIR, cfg.SCKT_CLIENT_THRD_LOG_FILENAME, cfg.HOST_CLIENT_LOG_DIR, cfg.BOARD1_NAME)
 
-
+  # ##############################################################
   # Copying the Shared Memory Xmit thread log file from embedded board #1 into host
   remote_copy_log_file(cfg.BOARD1_IP_ADDR, cfg.BOARD1_USER_NAME, cfg.BOARD1_SRC_ROOT_DIR, cfg.BOARD_SRC_C_DIR, cfg.SHMEM_XMIT_THRD_LOG_FILENAME, cfg.HOST_CLIENT_LOG_DIR, cfg.BOARD1_NAME)
